@@ -147,7 +147,9 @@ const FONTS = { 'Plus Jakarta Sans': 'Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,
   'Space Grotesk': 'Space+Grotesk:wght@400;500;600;700', 'Raleway': 'Raleway:wght@400;500;600;700;800' };
 function build(zip) {
   let o = SRC; const files = [];
-  const ex = (u, n) => { if (!zip || !/^data:image\//.test(u)) return u; files.push({ path: 'img/' + n + '.jpg', b64: u.split(',')[1] }); return 'img/' + n + '.jpg'; };
+  const slugify = (t, m) => String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, m || 40).replace(/-$/, '') || 'foto';
+  const seen = new Map();
+  const ex = (u, n, label) => { if (!zip || !/^data:image\//.test(u)) return u; if (seen.has(u)) return seen.get(u); const path = 'img/' + n + '.jpg'; files.push({ path, n: label || n, b64: u.split(',')[1] }); seen.set(u, path); return path; };
   const setVar = (n, v) => { o = o.replace(new RegExp('(--' + n + ':\\s*)#[0-9a-fA-F]{3,8}'), '$1' + v); };
   setVar('gold', S.gold); setVar('gold-deep', S.goldDeep); setVar('olive', S.bg); setVar('ink', S.ink);
   setVar('text', S.text); setVar('brown-1', S.brown1);
@@ -163,12 +165,12 @@ function build(zip) {
     .replace(/border-radius:\s*50%/g, 'border-radius: ' + RM[2]).replace(/border-radius:\s*24px 0 0 24px/, 'border-radius: ' + (S.radius === 'sq' ? '0' : '12px 0 0 12px'))
     .replace(/border-radius:\s*(?:14|16|18|22|26)px/g, 'border-radius: ' + RM[3]);
   const escH = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  const heroUrl = "url('" + ex(S.heroImg, 'hero').replace(/'/g, '%27') + "')";
+  const heroUrl = "url('" + ex(S.heroImg, 'hero', 'Imagem principal').replace(/'/g, '%27') + "')";
   o = o.replace(new RegExp(heroRe.source, 'g'), () => heroUrl);
   o = o.replace(ABOUT1, () => escH(S.about1)).replace(ABOUT2, () => escH(S.about2));
   const cfg = { name: S.name, tagline: S.tagline, announcement: S.announcement, address: S.address,
     phone: S.phone, whatsappNumber: S.wa, whatsappMessage: S.waMsg };
-  const prods = S.products.slice(0, S.limit).map(p => ({ ...p, image: ex(p.image, 'produto-' + p.id) }));
+  const prods = S.products.slice(0, S.limit).map(p => ({ ...p, image: ex(p.image, 'produto-' + p.id + '-' + slugify(p.name, 30), p.name) }));
   const pA = o.indexOf('const PRODUCTS = '), pB = o.indexOf('\n];', pA) + 3;
   o = o.slice(0, pA) + 'const PRODUCTS = ' + JSON.stringify(prods, null, 2).replace(/</g, '\\u003c') + ';' + o.slice(pB);
   const cA = o.indexOf('const CONFIG = '), cB = o.indexOf('\n};', cA) + 3;
@@ -181,6 +183,8 @@ function build(zip) {
   o = o.replace(/<section class="category-strip"[\s\S]*?<\/section>/, () => strip);
   if (S.light) x += '.products-section{background:#f4eee3!important;color:#1c1812}.products-section .product-specs b,.products-section .filter{color:#1c1812}.products-section .filter{border-color:rgba(0,0,0,.22)}.products-section .product-cat{color:#6b6459}.products-section .product-specs,.products-section .eyebrow,.products-section h2 span{color:var(--gold-deep)}';
   if (x) o = o.replace('</head>', '<style id="custom">' + x + '</style></head>');
+  o = o.replace('no início do script.js.', 'no início do script do index.html.');
+  if (zip) o = o.replace('</head>', () => '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%E2%99%9B%3C/text%3E%3C/svg%3E"></head>');
   return zip ? { html: o, files } : o;
 }
 function readImg(file, max, cb) { const r = new FileReader(); r.onload = () => { const im = new Image(); im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas');
@@ -251,7 +255,8 @@ function waHint() { const h = el('#wahint'); if (h) h.innerHTML = S.wa && !/^\d{
 /* ---------- componentes ---------- */
 const F = (l, k) => `<label class="f"><span>${l}</span><input data-k="${k}" placeholder="${/^data:/.test(S[k]) ? 'Foto enviada do computador' : ''}" value="${/^data:/.test(S[k]) ? '' : esc(S[k])}"></label>`;
 const T = (l, k) => `<label class="f"><span>${l}</span><textarea rows="3" data-k="${k}">${esc(S[k])}</textarea></label>`;
-const drop = (id, src) => `<label class="drop" data-drop="${id}"><img src="${esc(src)}" alt="" onerror="this.style.opacity=.2"><span>Clique ou arraste uma foto aqui</span><input type="file" accept="image/*" data-file="${id}" hidden></label>`;
+const imgHint = src => /^data:/.test(src) ? '<p class="hint" style="margin:6px 0 0">✓ Sua foto: vai para a pasta <b>img/</b> do ZIP e já fica ligada ao site.</p>' : '<p class="hint" style="margin:6px 0 0">Foto de exemplo do modelo (link da internet). Envie a sua para substituir.</p>';
+const drop = (id, src) => `<label class="drop" data-drop="${id}"><img src="${esc(src)}" alt="" onerror="this.style.opacity=.2"><span>Clique ou arraste uma foto aqui</span><input type="file" accept="image/*" data-file="${id}" hidden></label>${imgHint(src)}`;
 const sub = (p, i) => p.category + ' · ' + brlf(p.price) + (i >= S.limit ? ' · oculto' : '');
 const isTheme = th => TK.every(k => String(S[k]) === String(th[k]));
 const syncThemes = () => document.querySelectorAll('.tc').forEach((b, i) => b.setAttribute('aria-pressed', isTheme(THEMES[i])));
@@ -377,8 +382,25 @@ el('#dl').onclick = async () => {
   const { html, files } = build(true), slug = (S.name || 'site').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'site';
   if (!window.JSZip) { toast('Sem internet para gerar o ZIP: baixando só o index.html.'); save(new Blob([html], { type: 'text/html' }), 'index.html'); return; }
   const z = new JSZip(); z.file('index.html', html); files.forEach(f => z.file(f.path, f.b64, { base64: true }));
-  z.file('LEIA-ME.txt', 'Site gerado pelo Site Studio.\nAbra o index.html no navegador ou envie a pasta para sua hospedagem.\n');
-  save(await z.generateAsync({ type: 'blob' }), 'site-' + slug + '.zip'); toast('✓ ZIP gerado');
+  z.file('.nojekyll', '');
+  z.file('404.html', '<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=./"><title>Página não encontrada</title><p><a href="./">Voltar ao início</a></p></html>');
+  z.file('LEIA-ME.md', [
+    '# Seu site, pronto para o GitHub Pages', '',
+    '## Como publicar',
+    '1. Descompacte este ZIP no computador.',
+    '2. No GitHub, crie um repositório (ex.: meu-site) e use Add file > Upload files.',
+    '3. Arraste o CONTEÚDO da pasta (index.html, a pasta img e os demais arquivos), não o ZIP fechado.',
+    '4. Em Settings > Pages, escolha Deploy from a branch, branch main, pasta / (root), e salve.',
+    '5. Em cerca de 1 minuto o site abre em https://SEU-USUARIO.github.io/NOME-DO-REPOSITORIO/', '',
+    '## Fotos',
+    files.length ? 'Estas fotos vieram do painel e já estão ligadas ao index.html:' : 'Nenhuma foto foi enviada pelo painel: o site usa as imagens de exemplo (links da internet).',
+    ...files.map(f => '- ' + f.path + '  (' + f.n + ')'), '',
+    'Para trocar uma foto depois, envie outra com o MESMO nome dentro da pasta img/ no GitHub.',
+    'Imagens que continuam com link https:// são as de exemplo do modelo (Unsplash); envie as suas pelo painel para substituí-las.', '',
+    '## Editar textos',
+    'Nome, endereço, WhatsApp e produtos ficam nos blocos CONFIG e PRODUCTS, dentro do index.html.'
+  ].join('\n'));
+  save(await z.generateAsync({ type: 'blob' }), 'site-' + slug + '.zip'); toast('✓ ZIP gerado com ' + files.length + ' foto(s) enviada(s). Veja o LEIA-ME.md dentro dele.');
 };
 
 /* ---------- prévia de desktop: renderiza na largura real e reduz para caber ---------- */
