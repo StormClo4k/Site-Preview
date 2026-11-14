@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Site Studio · personalize seu site</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&family=Poppins:wght@600&family=Montserrat:wght@600&family=Playfair+Display:wght@600&family=Space+Grotesk:wght@600&family=Raleway:wght@600&family=Plus+Jakarta+Sans:wght@600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&family=Poppins:wght@600&family=Montserrat:wght@600&family=Playfair+Display:wght@600&family=Space+Grotesk:wght@600&family=Raleway:wght@600&family=Plus+Jakarta+Sans:wght@600&family=DM+Sans&family=Manrope&family=Outfit&family=Sora&family=Nunito&family=Quicksand&family=Work+Sans&family=Archivo&family=Rubik&family=Syne&family=Josefin+Sans&family=Oswald&family=Bebas+Neue&family=Lora&family=Merriweather&family=Cormorant+Garamond&family=Libre+Baskerville&family=Cinzel&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f5f5f2;--pn:#fff;--tx:#1c1c1a;--mu:#6b6b66;--bd:#e2e2dc;--ac:#4f46e5;--ac2:#eceeff}
 @media(prefers-color-scheme:dark){:root{--bg:#141413;--pn:#1e1e1c;--tx:#eeeee8;--mu:#9a9a92;--bd:#34342f;--ac:#8b85ff;--ac2:#25244a}}
@@ -165,7 +165,25 @@ S.products.forEach(p => {
 function hexRgb(h){h=h.replace('#','');if(h.length===3)h=[...h].map(c=>c+c).join('');const n=parseInt(h,16);return [n>>16&255,n>>8&255,n&255]}
 const FONTS = { 'Plus Jakarta Sans': 'Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600', 'Inter': 'Inter:wght@400;500;600;700;800',
   'Poppins': 'Poppins:wght@400;500;600;700;800', 'Montserrat': 'Montserrat:wght@400;500;600;700;800', 'Playfair Display': 'Playfair+Display:wght@400;500;600;700;800',
-  'Space Grotesk': 'Space+Grotesk:wght@400;500;600;700', 'Raleway': 'Raleway:wght@400;500;600;700;800' };
+  'Space Grotesk': 'Space+Grotesk:wght@400;500;600;700', 'Raleway': 'Raleway:wght@400;500;600;700;800',
+  'DM Sans': 'DM+Sans:wght@400;500;600;700',
+  'Manrope': 'Manrope:wght@400;500;600;700;800',
+  'Outfit': 'Outfit:wght@400;500;600;700;800',
+  'Sora': 'Sora:wght@400;500;600;700;800',
+  'Nunito': 'Nunito:wght@400;500;600;700;800',
+  'Quicksand': 'Quicksand:wght@400;500;600;700',
+  'Work Sans': 'Work+Sans:wght@400;500;600;700;800',
+  'Archivo': 'Archivo:wght@400;500;600;700;800',
+  'Rubik': 'Rubik:wght@400;500;600;700;800',
+  'Syne': 'Syne:wght@400;500;600;700;800',
+  'Josefin Sans': 'Josefin+Sans:wght@400;500;600;700',
+  'Oswald': 'Oswald:wght@400;500;600;700',
+  'Bebas Neue': 'Bebas+Neue',
+  'Lora': 'Lora:wght@400;500;600;700',
+  'Merriweather': 'Merriweather:wght@400;700',
+  'Cormorant Garamond': 'Cormorant+Garamond:wght@400;500;600;700',
+  'Libre Baskerville': 'Libre+Baskerville:wght@400;700',
+  'Cinzel': 'Cinzel:wght@400;500;600;700' };
 function build(zip) {
   let o = SRC; const files = [];
   const ex = (u, n) => { if (!zip || !/^data:image\//.test(u)) return u; files.push({ path: 'img/' + n + '.jpg', b64: u.split(',')[1] }); return 'img/' + n + '.jpg'; };
@@ -245,6 +263,7 @@ function build(zip) {
   o = o.replace(/(<div class="filter-row"[^>]*>)[\s\S]*?(<\/div>)/, (m, a, b) => a + (visCats.length ? '<button class="filter active" data-filter="Todos">Todos</button>' +
     visCats.map(c => `<button class="filter" data-filter="${escH(c.name)}">${escH(c.name)}</button>`).join('') : '') + b);
   if (S.light) x += '.products-section{background:#f4eee3!important;color:#1c1812}.products-section .product-specs b,.products-section .filter{color:#1c1812}.products-section .filter{border-color:rgba(0,0,0,.22)}.products-section .product-cat{color:#6b6459}.products-section .product-specs,.products-section .eyebrow,.products-section h2 span{color:var(--gold-deep)}';
+  x += '.fab-wa{border-radius:50%!important}'; /* botão do WhatsApp sempre redondo, em qualquer opção de cantos */
   if (x) o = o.replace('</head>', '<style id="custom">' + x + '</style></head>');
   if (!zip) { // só na pré-visualização: links #âncora rolam a página em vez de recarregar o painel dentro do quadro
     const NAV = '<script>document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest(\'a[href^="#"]\');if(!a)return;var h=a.getAttribute("href");e.preventDefault();if(h.length>1){var el=document.getElementById(decodeURIComponent(h.slice(1)));if(el)el.scrollIntoView({behavior:"smooth"})}else window.scrollTo({top:0,behavior:"smooth"})},true);<\/script>';
@@ -266,7 +285,24 @@ const THEMES = [
  ['Neon roxo','#b388ff','#5b2bbf','#130c24','#070412','#efe9fb','#1d1238','Poppins','round',false],
  ['Laranja urbano','#ff9a3c','#c4560a','#1c1208','#0a0704','#f7ece0','#2b1b0c','Raleway','sq',false],
  ['Areia (produtos claros)','#c9a273','#8a5f26','#261d02','#070b10','#f1ece4','#2c2214','Plus Jakarta Sans','soft',true],
- ['Minimal P&B','#e5e5e5','#3d3d3d','#111111','#000000','#f2f2f2','#1a1a1a','Inter','sq',false]
+ ['Minimal P&B','#e5e5e5','#3d3d3d','#111111','#000000','#f2f2f2','#1a1a1a','Inter','sq',false],
+ ['Esmeralda','#5ed3a0','#12795a','#08201a','#030f0b','#e6f5ee','#0e2e25','Outfit','soft',false],
+ ['Coral','#ff7a7a','#b4232f','#2a0d10','#120506','#fdeeee','#3a1418','Sora','round',false],
+ ['Lavanda','#c4b5fd','#6d4fc4','#1a1530','#0a0818','#f1edfc','#251d45','DM Sans','round',false],
+ ['Menta','#7fe0c8','#1d8f78','#0d2523','#041210','#e7f8f4','#143633','Nunito','round',false],
+ ['Cobre','#d98c5f','#8a4a22','#1f130d','#0b0605','#f5e9e0','#2d1c13','Lora','soft',false],
+ ['Marinho e ouro','#e3b95c','#1d3a6b','#0c1730','#050a18','#eef1f8','#142448','Cormorant Garamond','sq',false],
+ ['Terracota','#e07a5f','#9c3d22','#2a1610','#120804','#f8ebe4','#3a2018','Manrope','soft',false],
+ ['Oliva','#b5c46a','#5c6b20','#1a1d0c','#0a0c04','#f1f3e2','#262b12','Work Sans','soft',false],
+ ['Rosa chiclete','#ff8fc8','#c21d78','#2b0c1e','#14050d','#ffeef7','#40142e','Quicksand','round',false],
+ ['Ciano futurista','#22e1ff','#0a7f99','#06161c','#020a0d','#e3fafe','#0c2830','Syne','sq',false],
+ ['Amarelo sol','#ffd60a','#a87c00','#1a1600','#0a0800','#fff9db','#2a2300','Archivo','sq',false],
+ ['Carvão e vermelho','#ff4d4d','#a31212','#161616','#080808','#f4f4f4','#222222','Oswald','sq',false],
+ ['Café','#d2a679','#6f4518','#1c120b','#090504','#f4eadf','#2a1b10','Merriweather','soft',false],
+ ['Imperial','#f5c542','#5b2a86','#170d26','#08040f','#f3ecfa','#241440','Cinzel','sq',false],
+ ['Rosé (produtos claros)','#e8a0b8','#a8355e','#2a0f1b','#12060b','#f6e9ee','#3a1626','Playfair Display','soft',true],
+ ['Oceano (produtos claros)','#6fa8dc','#1f4e79','#0b1a2b','#050b14','#e8f0f8','#10243a','Inter','soft',true],
+ ['Floresta (produtos claros)','#8fbf8f','#2e6b3a','#10200f','#06100a','#e9f1e6','#16301a','Montserrat','round',true]
 ].map(a => Object.fromEntries([['n', a[0]], ...TK.map((k, j) => [k, a[j + 1]])]));
 
 const el = s => document.querySelector(s);
